@@ -18,6 +18,10 @@
             border-radius: 10px;
             width: 150px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .player-clicked {
+            background-color: #e0f7fa;
         }
         .result {
             margin-top: 40px;
@@ -32,9 +36,9 @@
 <body>
     <h1>三人投掷筛子游戏</h1>
     <div id="players">
-        <div class="player" onclick="rollDice('胡')">胡</div>
-        <div class="player" onclick="rollDice('徐')">徐</div>
-        <div class="player" onclick="rollDice('瞿')">瞿</div>
+        <div class="player" onclick="rollDice('胡', this)">胡</div>
+        <div class="player" onclick="rollDice('徐', this)">徐</div>
+        <div class="player" onclick="rollDice('瞿', this)">瞿</div>
     </div>
     <div id="results" class="result"></div>
     <button id="retryButton" class="retry" onclick="resetGame()">重新开始</button>
@@ -43,11 +47,14 @@
         let scores = {};
         let players = ['胡', '徐', '瞿'];
 
-        function rollDice(player) {
+        function rollDice(player, element) {
             if (scores[player]) return; // 防止重复点击
 
             const diceRoll = Math.floor(Math.random() * 6) + 1;
             scores[player] = diceRoll;
+
+            // 改变点击玩家的名字颜色
+            element.classList.add('player-clicked');
 
             updateResults();
 
@@ -66,30 +73,21 @@
 
         function determineWinner() {
             let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-            let maxScore = sortedScores[0][1];
-            let winners = sortedScores.filter(([player, score]) => score === maxScore);
 
-            let resultText = '';
+            let resultText = `角色分配结果：`;
+            resultText += `大傻=${sortedScores[0][0]} (${sortedScores[0][1]})`;
+            resultText += `, 二傻=${sortedScores[1][0]} (${sortedScores[1][1]})`;
+            resultText += `, 三傻=${sortedScores[2][0]} (${sortedScores[2][1]})`;
 
-            if (winners.length === 1) {
-                resultText = `${winners[0][0]} 赢得了比赛！`;
-            } else {
-                resultText = `平局！${winners.map(winner => winner[0]).join(', ')} 再次投掷。`;
-                resetRound(winners.map(winner => winner[0]));
-            }
-
-            document.getElementById('results').innerHTML += `<p>${resultText}</p>`;
-            document.getElementById('retryButton').style.display = winners.length > 1 ? 'none' : 'block';
-        }
-
-        function resetRound(playersToReset) {
-            playersToReset.forEach(player => delete scores[player]);
+            document.getElementById('results').innerHTML = `<p>${resultText}</p>`;
+            document.getElementById('retryButton').style.display = 'block';
         }
 
         function resetGame() {
             scores = {};
             document.getElementById('results').innerHTML = '';
             document.getElementById('retryButton').style.display = 'none';
+            document.querySelectorAll('.player').forEach(element => element.classList.remove('player-clicked'));
         }
     </script>
 </body>
