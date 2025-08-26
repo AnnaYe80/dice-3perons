@@ -3,101 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三人骰子竞赛</title>
+    <title>三人投掷筛子</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f9;
-            margin: 0;
-        }
-        .container {
             text-align: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
         }
-        button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
+        .player {
+            display: inline-block;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            width: 150px;
             cursor: pointer;
         }
-        .player-result {
+        .result {
+            margin-top: 40px;
+            font-size: 1.2em;
+        }
+        .retry {
             margin-top: 20px;
-            font-size: 18px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>三人骰子竞赛</h1>
-        <div id="playerButtons"></div>
-        <div id="results" class="player-result"></div>
+    <h1>三人投掷筛子游戏</h1>
+    <div id="players">
+        <div class="player" onclick="rollDice('胡')">胡</div>
+        <div class="player" onclick="rollDice('徐')">徐</div>
+        <div class="player" onclick="rollDice('瞿')">瞿</div>
     </div>
+    <div id="results" class="result"></div>
+    <button id="retryButton" class="retry" onclick="resetGame()">重新开始</button>
 
     <script>
-        const players = ['胡', '徐', '瞿'];
-        let results = {};
+        let scores = {};
+        let players = ['胡', '徐', '瞿'];
 
-        function createPlayerButtons() {
-            const playerButtonsDiv = document.getElementById('playerButtons');
-            players.forEach(player => {
-                const button = document.createElement('button');
-                button.textContent = `${player} 投掷`;
-                button.addEventListener('click', () => rollDiceForPlayer(player));
-                playerButtonsDiv.appendChild(button);
-            });
-        }
+        function rollDice(player) {
+            if (scores[player]) return; // 防止重复点击
 
-        function rollDiceForPlayer(player) {
-            if (!results[player]) {
-                results[player] = Math.floor(Math.random() * 6) + 1;
-                checkAllPlayersRolled();
-            }
-        }
+            const diceRoll = Math.floor(Math.random() * 6) + 1;
+            scores[player] = diceRoll;
 
-        function checkAllPlayersRolled() {
-            if (Object.keys(results).length === players.length) {
+            updateResults();
+
+            if (Object.keys(scores).length === players.length) {
                 determineWinner();
             }
         }
 
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            for (let player in scores) {
+                resultsDiv.innerHTML += `<p>${player}: ${scores[player]}</p>`;
+            }
+        }
+
         function determineWinner() {
-            let sortedResults = Object.entries(results).sort((a, b) => b[1] - a[1]);
-            let maxScore = sortedResults[0][1];
-            let winners = sortedResults.filter(([player, score]) => score === maxScore);
+            let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            let maxScore = sortedScores[0][1];
+            let winners = sortedScores.filter(([player, score]) => score === maxScore);
 
-            if (winners.length > 1) {
-                // If there's a tie, reset and ask them to roll again
-                results = {};
-                document.getElementById('results').innerHTML = '出现平局，请重新投掷！';
-                setTimeout(() => {
-                    document.getElementById('results').innerHTML = '';
-                    createPlayerButtons(); // Reset buttons for re-roll
-                }, 1500); // Wait 1.5 seconds before resetting
+            let resultText = '';
+
+            if (winners.length === 1) {
+                resultText = `${winners[0][0]} 赢得了比赛！`;
             } else {
-                // Display the final result
-                displayResult(sortedResults);
+                resultText = `平局！${winners.map(winner => winner[0]).join(', ')} 再次投掷。`;
+                resetRound(winners.map(winner => winner[0]));
             }
+
+            document.getElementById('results').innerHTML += `<p>${resultText}</p>`;
+            document.getElementById('retryButton').style.display = winners.length > 1 ? 'none' : 'block';
         }
 
-        function displayResult(sortedResults) {
-            let resultText = '<h2>最终结果：</h2>';
-            for (let [player, score] of sortedResults) {
-                resultText += `${player}: ${score}<br>`;
-            }
-            document.getElementById('results').innerHTML = resultText;
+        function resetRound(playersToReset) {
+            playersToReset.forEach(player => delete scores[player]);
         }
 
-        createPlayerButtons();
+        function resetGame() {
+            scores = {};
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('retryButton').style.display = 'none';
+        }
     </script>
 </body>
 </html>
-
 
 
